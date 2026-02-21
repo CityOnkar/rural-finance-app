@@ -56,11 +56,12 @@ jobs:
       - name: Get S3 Bucket
         id: bucket
         run: |
-          BUCKET=$(terraform output -raw cloudfront_url)
-          echo "bucket=$BUCKET" >> $GITHUB_OUTPUT
+          BUCKET=$(terraform output -raw frontend_bucket_name)
+          echo "BUCKET_NAME=$BUCKET" >> $GITHUB_ENV
         working-directory: terraform
 
+
       # Upload Frontend
-      - name: Upload to S3
+      - name: Upload Frontend
         run: |
-          aws s3 sync frontend/build/ s3://$(aws s3 ls | awk '{print $3}' | grep rural-finance-frontend) --delete
+          aws s3 sync frontend/build/ s3://$BUCKET_NAME --delete
