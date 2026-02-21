@@ -1,0 +1,66 @@
+name: Full Production Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Configure AWS using OIDC
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::570367131375:role/Github
+          aws-region: us-east-1
+
+      # Setup Node
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      # Install Backend
+      - name: Install Backend Dependencies
+        run: |
+          cd backend
+          npm install
+
+      # Install Frontend + Build
+      - name: Build Frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
+      # Setup Terraform
+      - uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: terraform
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: terraform
+
+      # Get bucket name dynamically
+      - name: Get S3 Bucket
+        id: bucket
+        run: |
+          BUCKET=$(terraform output -raw cloudfront_url)
+          echo "bucket=$BUCKET" >> $GITHUB_OUTPUT
+        working-directory: terraform
+
+      # Upload Frontend
+      - name: Upload to S3
+        run: |
+          aws s3 sync frontend/build/ s3://$(aws s3 ls | awk '{print $3}' | grep rural-finance-frontend) --delete

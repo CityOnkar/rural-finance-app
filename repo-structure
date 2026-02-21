@@ -1,0 +1,18 @@
+rural-finance-app/
+│
+├── backend/
+│   ├── index.js
+│   └── package.json
+│
+├── frontend/
+│   ├── package.json
+│   └── src/
+│
+├── terraform/
+│   ├── main.tf
+│   ├── variables.tf
+│   ├── outputs.tf
+│   └── terraform.tfvars
+│
+└── .github/workflows/
+    └── deploy.yml
