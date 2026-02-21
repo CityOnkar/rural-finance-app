@@ -8,6 +8,16 @@ data "archive_file" "lambda_zip" {
   output_path = "../backend/lambda.zip"
 }
 
+terraform {
+  backend "s3" {
+    bucket         = "rural-finance-tf-state-omkar"
+    key            = "global/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "rural-finance-tf-lock"
+    encrypt        = true
+  }
+}
+
 
 ############################
 # DynamoDB
